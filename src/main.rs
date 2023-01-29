@@ -70,7 +70,6 @@ fn main() {
     }
     let selected_quote = quote_vec[0].clone();
 
-    println!("Listening on port {}", cli.port);
     let quote = Arc::new(std::sync::Mutex::new(CurrentQuote {
         quote: selected_quote,
         time: std::time::SystemTime::now(),
@@ -80,6 +79,7 @@ fn main() {
     let tcpquote = quote.clone();
     let tcpthread = std::thread::spawn(move || {
         let listener = TcpListener::bind(format!("0.0.0.0:{}", cli.port)).expect(&format!("Cannot bind tcp 0.0.0.0:{}", cli.port)[..]);
+        println!("Listening on tcp port {}", cli.port);
         for stream in listener.incoming() {
             let quote_to_send = match tcpquote.lock() {
                 Ok(q) => q.clone().get_string(),
@@ -99,6 +99,7 @@ fn main() {
     let udpquote = quote.clone();
     let udpthread = std::thread::spawn(move || {
         let listener = UdpSocket::bind(format!("0.0.0.0:{}", cli.port)).expect(&format!("Cannot bind udp 0.0.0.0:{}", cli.port)[..]);
+        println!("Listening on udp port {}", cli.port);
         let mut buf = [0; 10];
         loop {
             let src_addr = match listener.recv_from(&mut buf) {
